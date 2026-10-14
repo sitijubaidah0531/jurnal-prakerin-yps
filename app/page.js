@@ -24,10 +24,10 @@ export default function Jurnal() {
       <style>{`@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');`}</style>
       <div className="max-w-xl mx-auto">
         <div className="bg-white rounded-3xl shadow-xl p-6 border-2 border-orange-100">
-          <h1 className="text-center font-black text-xl">📒 JURNAL PRAKERIN<br/><span className="text-orange-500">Siti Jubaidah - YPS</span></h1>
+          <h1 className="text-center font-black text-xl">📒 JURNAL PRAKERIN<br/><span className="text-orange-500">SMK YPS PRABUMULIH</span></h1>
           <p className="text-center text-gray-400 text-xs mt-1">SMK YPS - Catatan Harian Magang</p>
           
-          <textarea value={teks} onChange={e=>setTeks(e.target.value)} placeholder="Hari ini kegiatan prakerinnya ngapain aja cak? Tulis disini..." className="w-full mt-6 h-36 border-2 border-orange-200 rounded-2xl p-4 focus:border-orange-400 outline-none"></textarea>
+          <textarea value={teks} onChange={e=>setTeks(e.target.value)} placeholder="Hari ini kegiatan prakerinnya ngapain aja ? Tulis disini..." className="w-full mt-6 h-36 border-2 border-orange-200 rounded-2xl p-4 focus:border-orange-400 outline-none"></textarea>
           
           <button onClick={simpan} className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-2xl">✨ Simpan Jurnal Hari Ini</button>
 
