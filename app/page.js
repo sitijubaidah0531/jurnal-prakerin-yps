@@ -132,7 +132,7 @@ export default function Page(){
             <label className="text-[11px] font-bold">Masuk Sebagai</label>
             <select value={login.peran} onChange={e=>setLogin({...login,peran:e.target.value})} className="w-full bg-gray-100 rounded-xl p-3.5 mt-1 mb-3 text-sm font-bold"><option value="siswa">Siswa PKL</option><option value="dudi">Pembimbing DUDI</option><option value="guru">Guru Pembimbing</option></select>
             <label className="text-[11px] font-bold">Nama Lengkap</label>
-            <input list="hist" value={login.nama} onChange={e=>setLogin({...login,nama:e.target.value})} placeholder="Ketik 'su' → SURYANI" className="w-full bg-gray-100 rounded-xl p-3.5 mt-1 mb-1 text-sm outline-none"/>
+            <input list="hist" value={login.nama} onChange={e=>setLogin({...login,nama:e.target.value})} placeholder="Masukan Nama" className="w-full bg-gray-100 rounded-xl p-3.5 mt-1 mb-1 text-sm outline-none"/>
             <datalist id="hist">{loginHistory.map((h,i)=><option key={i} value={h}/>)}{siswaList.map(s=><option key={s.id} value={s.nama}/>)}</datalist>
             <label className="text-[11px] font-bold">Password</label>
             <input type="password" value={login.peran==='guru'?login.guruPass:login.password} onChange={e=>{if(login.peran==='guru')setLogin({...login,guruPass:e.target.value});else setLogin({...login,password:e.target.value});}} placeholder="Password" className="w-full bg-gray-100 rounded-xl p-3.5 mt-1 mb-5 text-sm outline-none"/>
