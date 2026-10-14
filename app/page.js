@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-const LOGO = "/logo-yps.jpg";
+const LOGO = "/logo-yps.jpeg";
 export default function Page(){
   const [role,setRole]=useState(null); const [curr,setCurr]=useState(null);
   const [tempatList,setTempatList]=useState([{id:'1',nama:'PT. TITIS SAMPURNA',password:'titis123',pj:'Siti Hartini, S.E.'}]);
