@@ -6,7 +6,6 @@ export default function Page(){
   const [tempatList,setTempatList]=useState([{id:'1',nama:'PT. TITIS SAMPURNA',password:'titis123',pj:'Siti Hartini, S.E.'}]);
   const [siswaList,setSiswaList]=useState([{id:'1',nama:'SURYANI',kelas:'XII MPLB 2',tempat:'PT. TITIS SAMPURNA',password:'suryani123',nis:'12345',guru:'Siti Jubaidah, S.Pd'}]);
   const [jurnals,setJurnals]=useState([]);
-  // FIX 1: SEMUA KOSONG DI AWAL
   const [login,setLogin]=useState({nama:'',peran:'siswa',tempat:'',password:'',guruPass:''});
   const [guruTab,setGuruTab]=useState('monitoring'); const [newTempat,setNewTempat]=useState({nama:'',password:'',pj:''}); const [editTempatId,setEditTempatId]=useState(null);
   const [newSiswa,setNewSiswa]=useState({nama:'',kelas:'XII MPLB 2',tempat:'',password:'',nis:'',guru:''}); const [editSiswaId,setEditSiswaId]=useState(null);
@@ -15,7 +14,6 @@ export default function Page(){
   const laporanRef = useRef(null); const [jam,setJam]=useState('');
   useEffect(()=>{const i=setInterval(()=>setJam(new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})),1000);return()=>clearInterval(i);},[]);
 
-  // FIX 2: JANGAN AUTO-LOAD NAMA DARI LOCALSTORAGE (INI BIANG KEROKNYA!)
   useEffect(()=>{
     const j=localStorage.getItem('j_v103');
     const s=localStorage.getItem('siswa_v103');
@@ -29,21 +27,19 @@ export default function Page(){
     if(r)setRole(r);
     if(c)setCurr(JSON.parse(c));
     if(lh)setLoginHistory(JSON.parse(lh));
-    // HAPUS BARIS last_login BIAR GAK AUTO ISI SITI LAGI
   },[]);
 
   useEffect(()=>{localStorage.setItem('j_v103',JSON.stringify(jurnals))},[jurnals]); useEffect(()=>{localStorage.setItem('siswa_v103',JSON.stringify(siswaList))},[siswaList]); useEffect(()=>{localStorage.setItem('tempat_v103',JSON.stringify(tempatList))},[tempatList]); useEffect(()=>{localStorage.setItem('login_hist_v103',JSON.stringify(loginHistory))},[loginHistory]);
 
   const saveHistory=(n)=>{if(!n)return;let h=[...loginHistory];if(!h.includes(n))h=[n,...h].slice(0,10);setLoginHistory(h);};
 
-  // FIX 3: LOGIN AMAN, GAK ADA LAGI || 'Siti Jubaidah'
   const doLogin=()=>{
     if(!login.nama || (login.peran==='guru'?!login.guruPass:!login.password)){
       return alert('Nama dan Password harus diisi dulu cak!');
     }
     if(login.peran==='guru'){
       if(login.guruPass!=='guru123')return alert('Password Guru salah!');
-      const u={nama:login.nama,peran:'guru'}; // FIX: HAPUS || 'Siti Jubaidah'
+      const u={nama:login.nama,peran:'guru'};
       setCurr(u);setRole('guru');
       localStorage.setItem('curr_v103',JSON.stringify(u));
       localStorage.setItem('role_v103','guru');
@@ -73,7 +69,7 @@ export default function Page(){
     setRole(null);setCurr(null);
     localStorage.removeItem('role_v103');
     localStorage.removeItem('curr_v103');
-    setLogin({nama:'',peran:'siswa',tempat:'',password:'',guruPass:''}); // FIX: BALIK KOSONG LAGI
+    setLogin({nama:'',peran:'siswa',tempat:'',password:'',guruPass:''});
   };
 
   const addOrUpdateTempat=()=>{if(!newTempat.nama||!newTempat.password)return alert('Isi!');if(editTempatId){setTempatList(tempatList.map(t=>t.id===editTempatId?{...t,...newTempat}:t));setEditTempatId(null);}else{setTempatList([...tempatList,{id:Date.now().toString(),...newTempat}]);}setNewTempat({nama:'',password:'',pj:''});};
@@ -91,12 +87,21 @@ export default function Page(){
   const acc=(id)=>setJurnals(jurnals.map(j=>j.id===id?{...j,status:'Sudah Dikonfirmasi ✅',konfirmasiOleh:curr.nama}:j));
   const accSemua=()=>{const p=filtered.filter(j=>j.status.includes('Menunggu'));if(p.length===0)return alert('Tidak ada!');if(!confirm(`ACC ${p.length} sekaligus?`))return;setJurnals(jurnals.map(j=>(j.tempat===curr?.tempat&&j.status.includes('Menunggu'))?{...j,status:'Sudah Dikonfirmasi ✅',konfirmasiOleh:curr.nama}:j));};
   const filtered=jurnals.filter(j=>{const ft=filterTempat==='Semua'||j.tempat===filterTempat;const fs=j.siswaNama.toLowerCase().includes(search.toLowerCase())||j.kegiatan.toLowerCase().includes(search.toLowerCase());const rf=role==='dudi'?j.tempat===curr?.tempat:role==='siswa'?j.siswaNama===curr?.nama:true;return ft&&fs&&rf;});
-  const openLaporan=(s)=>{setLaporanSiswa(s);setShowLaporan(true);}; const printLaporan=()=>window.print(); const downloadWord=()=>{const c=laporanRef.current.innerHTML;const b=new Blob([`<html><head><meta charset='utf-8'></head><body>${c}</body></html>`],{type:'application/msword'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`Laporan-${laporanSiswa?.nama||curr?.nama}.doc`;a.click();};
+
+  // LAPORAN AKHIR FIX
+  const openLaporan=(s)=>{setLaporanSiswa(s);setShowLaporan(true);};
+  const printLaporan=()=>window.print();
+  const downloadWord=()=>{
+    const c=laporanRef.current.innerHTML;
+    const b=new Blob([`<html><head><meta charset='utf-8'></head><body>${c}</body></html>`],{type:'application/msword'});
+    const u=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=u;a.download=`Laporan-Akhir-${laporanSiswa?.nama||curr?.nama}.doc`;a.click();
+  };
   const getTempatInfo=(n)=>tempatList.find(t=>t.nama===n);
   const totalMenunggu=filtered.filter(j=>j.status.includes('Menunggu')).length; const totalACC=filtered.filter(j=>j.status.includes('Sudah')).length;
-
-  // TOMBOL MASUK MATI KALO KOSONG - BIAR AMAN
   const isLoginDisabled =!login.nama || (login.peran==='guru'?!login.guruPass :!login.password) || (login.peran==='dudi' &&!login.tempat);
+  const laporanData = jurnals.filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama));
 
   return (<><style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');*{font-family:'Poppins',sans-serif}@keyframes float1{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(6deg)}100%{transform:translateY(0) rotate(0deg)}}@keyframes float2{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-32px) rotate(-6deg)}100%{transform:translateY(0) rotate(0deg)}}.bokeh{position:fixed;pointer-events:none;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);z-index:0}@media print{body *{visibility:hidden;}#laporan-akhir,#laporan-akhir *{visibility:visible;}#laporan-akhir{position:absolute;left:0;top:0;width:100%;background:white;}.no-print{display:none!important;}}`}</style>
   {!role && <><div style={{background:'#14b8a6'}} className="fixed inset-0 z-0"></div><div className="bokeh" style={{width:'600px',height:'600px',top:'-120px',right:'-150px'}}></div><div className="bokeh" style={{width:'800px',height:'800px',bottom:'-250px',left:'-250px',opacity:0.5}}></div><div style={{position:'fixed',top:'4%',left:'2%',fontSize:'56px',animation:'float1 5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'12%',right:'4%',fontSize:'42px',animation:'float2 6s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'50%',left:'1%',fontSize:'50px',animation:'float1 6.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'8%',right:'5%',fontSize:'54px',animation:'float2 5.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'4%',left:'7%',fontSize:'46px',animation:'float1 7s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div></>}
@@ -127,12 +132,58 @@ export default function Page(){
           </div>
         )}
         {(role!=='guru'||guruTab==='monitoring') && (<>
-          {role==='siswa' && (<div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] p-6 mb-5 text-white shadow-xl relative overflow-hidden"><div className="absolute right-0 top-0 text-[120px] opacity-10">🍍</div><h3 className="font-black text-lg">Halo, {curr?.nama}! 👋</h3><p className="text-sm opacity-80 mb-4">📍 {curr?.tempat}</p><div className="bg-white/10 backdrop-blur rounded-2xl p-4"><label className="text-xs font-bold opacity-80">✍️ TULIS KEGIATAN</label><textarea value={jurnalForm.kegiatan} onChange={e=>setJurnalForm({...jurnalForm,kegiatan:e.target.value})} placeholder="Hari ini belajar..." className="w-full bg-white rounded-xl p-3 mt-2 text-sm text-black outline-none min-h-[80px]"/><input type="file" accept="image/*" onChange={handleFoto} className="mt-3 text-xs"/><button onClick={simpanJurnal} className="w-full mt-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-black py-3.5 rounded-xl">🚀 Kirim</button>{jurnalForm.foto && <img src={jurnalForm.foto} className="mt-3 rounded-xl w-full max-w-xs"/>}</div><button onClick={()=>openLaporan(curr)} className="w-full mt-4 bg-white text-slate-900 font-black py-3 rounded-xl text-sm">📄 Laporan Akhir</button></div>)}
+          {role==='siswa' && (<div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] p-6 mb-5 text-white shadow-xl relative overflow-hidden"><div className="absolute right-0 top-0 text-[120px] opacity-10">🍍</div><h3 className="font-black text-lg">Halo, {curr?.nama}! 👋</h3><p className="text-sm opacity-80 mb-4">📍 {curr?.tempat}</p><div className="bg-white/10 backdrop-blur rounded-2xl p-4"><label className="text-xs font-bold opacity-80">✍️ TULIS KEGIATAN</label><textarea value={jurnalForm.kegiatan} onChange={e=>setJurnalForm({...jurnalForm,kegiatan:e.target.value})} placeholder="Hari ini belajar..." className="w-full bg-white rounded-xl p-3 mt-2 text-sm text-black outline-none min-h-[80px]"/><input type="file" accept="image/*" onChange={handleFoto} className="mt-3 text-xs"/><button onClick={simpanJurnal} className="w-full mt-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-black py-3.5 rounded-xl">🚀 Kirim</button>{jurnalForm.foto && <img src={jurnalForm.foto} className="mt-3 rounded-xl w-full max-w-xs"/>}</div><button onClick={()=>openLaporan(curr)} className="w-full mt-4 bg-white text-slate-900 font-black py-3 rounded-xl text-sm hover:bg-gray-100">📄 Laporan Akhir</button></div>)}
           <div className="bg-white rounded-[20px] p-3 flex gap-2 mb-4 shadow-sm border"><select value={filterTempat} onChange={e=>setFilterTempat(e.target.value)} className="flex-1 bg-gray-50 rounded-xl p-3 text-sm font-bold"><option value="Semua">🌍 Semua</option>{tempatList.map(t=><option key={t.id} value={t.nama}>{t.nama}</option>)}</select><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Cari" className="flex-1 bg-gray-50 rounded-xl p-3 text-sm"/>{role==='dudi' && totalMenunggu>0 && <button onClick={accSemua} className="bg-emerald-500 text-white text-xs font-black px-5 py-3 rounded-xl">✅ ACC {totalMenunggu}</button>}</div>
           <div className="grid gap-4">{filtered.map(j=><div key={j.id} className="bg-white rounded-[24px] p-5 shadow-sm border"><div className="flex justify-between items-start mb-3"><div className="flex gap-3"><div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-emerald-400 rounded-full flex items-center justify-center text-white font-black text-sm">{j.siswaNama.charAt(0)}</div><div><p className="font-black text-sm">{j.siswaNama}</p><p className="text-[11px] text-gray-500">📍 {j.tempat} • {j.tanggal}</p></div></div><span className={`text-[10px] font-black px-3 py-1.5 rounded-full ${j.status.includes('Sudah')?'bg-emerald-50 text-emerald-600 border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'}`}>{j.status}</span></div><p className="text-sm bg-gray-50 rounded-2xl p-4 border">{j.kegiatan}</p>{j.foto && <img src={j.foto} className="mt-4 rounded-2xl w-full max-h-[400px] object-cover border"/>}{role==='dudi' && j.status.includes('Menunggu') && <button onClick={()=>acc(j.id)} className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3.5 rounded-2xl font-black">✅ ACC</button>}</div>)}</div>
         </>)}
       </div>
     </div>
-  )}</>
+  )}
+
+  {/* ====== MODAL LAPORAN AKHIR - INI YANG HILANG KEMARIN CAK ====== */}
+  {showLaporan && (
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[24px] shadow-2xl">
+        <div id="laporan-akhir" ref={laporanRef} className="p-8 bg-white text-black">
+          <div className="text-center border-b-4 border-teal-500 pb-4 mb-6">
+            <img src={LOGO} className="w-16 h-16 mx-auto mb-2"/>
+            <h1 className="font-black text-xl">LAPORAN AKHIR PRAKERIN</h1>
+            <h2 className="font-bold text-teal-600">SMK YPS PRABUMULIH</h2>
+            <p className="text-xs text-gray-500 mt-1">Tahun Ajaran 2025/2026</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6 bg-teal-50 p-4 rounded-xl border">
+            <div><p className="text-xs text-gray-500">Nama Siswa</p><p className="font-black">: {laporanSiswa?.nama || curr?.nama}</p></div>
+            <div><p className="text-xs text-gray-500">Kelas</p><p className="font-bold">: {laporanSiswa?.kelas || curr?.kelas}</p></div>
+            <div><p className="text-xs text-gray-500">Tempat Prakerin</p><p className="font-bold">: {laporanSiswa?.tempat || curr?.tempat}</p></div>
+            <div><p className="text-xs text-gray-500">Jumlah Jurnal</p><p className="font-bold">: {laporanData.length} Kegiatan</p></div>
+            <div><p className="text-xs text-gray-500">Pembimbing</p><p className="font-bold">: {laporanSiswa?.guru || curr?.guru || '-'}</p></div>
+            <div><p className="text-xs text-gray-500">Status</p><p className="font-bold text-emerald-600">: {totalACC} Sudah ACC</p></div>
+          </div>
+
+          <h3 className="font-black mb-3">📋 Rincian Kegiatan:</h3>
+          <table className="w-full border-collapse border-gray-300 text-xs">
+            <thead><tr className="bg-teal-500 text-white"><th className="border p-2">No</th><th className="border p-2">Tanggal</th><th className="border p-2">Kegiatan</th><th className="border p-2">Status</th></tr></thead>
+            <tbody>
+              {laporanData.length===0? <tr><td colSpan={4} className="text-center p-4">Belum ada jurnal</td></tr> :
+              laporanData.map((j,i)=><tr key={j.id} className={i%2===0?'bg-gray-50':''}><td className="border p-2 text-center">{i+1}</td><td className="border p-2">{j.tanggal}<br/><span className="text-[10px]">{j.jam}</span></td><td className="border p-2">{j.kegiatan}</td><td className="border p-2">{j.status}</td></tr>)}
+            </tbody>
+          </table>
+
+          <div className="mt-8 grid grid-cols-2 gap-10 text-center text-xs">
+            <div><p className="mb-16">Mengetahui,<br/>Pembimbing DUDI</p><p className="font-bold underline">{getTempatInfo(laporanSiswa?.tempat||curr?.tempat)?.pj || '........................'}</p></div>
+            <div><p className="mb-16">Prabumulih, {new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}<br/>Siswa PKL</p><p className="font-bold underline">{laporanSiswa?.nama||curr?.nama}</p></div>
+          </div>
+        </div>
+
+        <div className="p-4 bg-gray-50 rounded-b-[24px] flex gap-2 no-print sticky bottom-0 border-t">
+          <button onClick={()=>setShowLaporan(false)} className="flex-1 bg-gray-200 py-3 rounded-xl font-bold text-sm">❌ Tutup</button>
+          <button onClick={printLaporan} className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold text-sm">🖨️ Cetak PDF</button>
+          <button onClick={downloadWord} className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm">📄 Download Word</button>
+        </div>
+      </div>
+    </div>
+  )}
+  </>
   );
 }
