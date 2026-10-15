@@ -104,7 +104,11 @@ export default function Page(){
   const totalMenunggu=filtered.filter(j=>j.status.includes('Menunggu')).length;
   const totalACC=filtered.filter(j=>j.status.includes('Sudah')).length;
   const isLoginDisabled =!login.nama || (login.peran==='guru'?!login.guruPass :!login.password) || (login.peran==='dudi' &&!login.tempat);
-  const laporanData = jurnals.filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama));
+
+  // FIX V11.4: URUTAN DARI TERLAMA KE TERBARU (PERTAMA UPLOAD DI ATAS)
+  const laporanData = jurnals
+   .filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama))
+   .sort((a,b)=> a.id - b.id);
 
   return (<><style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');*{font-family:'Poppins',sans-serif}@keyframes float1{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(6deg)}100%{transform:translateY(0) rotate(0deg)}}@keyframes float2{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-32px) rotate(-6deg)}100%{transform:translateY(0) rotate(0deg)}}.bokeh{position:fixed;pointer-events:none;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);z-index:0}@media print{body *{visibility:hidden;}#laporan-akhir,#laporan-akhir *{visibility:visible;}#laporan-akhir{position:absolute;left:0;top:0;width:100%;background:white;}.no-print{display:none!important;}}`}</style>
   {!role && <><div style={{background:'#14b8a6'}} className="fixed inset-0 z-0"></div><div className="bokeh" style={{width:'600px',height:'600px',top:'-120px',right:'-150px'}}></div><div className="bokeh" style={{width:'800px',height:'800px',bottom:'-250px',left:'-250px',opacity:0.5}}></div><div style={{position:'fixed',top:'4%',left:'2%',fontSize:'56px',animation:'float1 5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'12%',right:'4%',fontSize:'42px',animation:'float2 6s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'50%',left:'1%',fontSize:'50px',animation:'float1 6.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'8%',right:'5%',fontSize:'54px',animation:'float2 5.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'4%',left:'7%',fontSize:'46px',animation:'float1 7s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div></>}
@@ -143,7 +147,7 @@ export default function Page(){
     </div>
   )}
 
-  {/* MODAL LAPORAN AKHIR V11.2 DENGAN FOTO */}
+  {/* MODAL LAPORAN AKHIR V11.4 FINAL */}
   {showLaporan && (
     <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[24px] shadow-2xl">
@@ -164,45 +168,32 @@ export default function Page(){
             <div><p className="text-xs text-gray-500">Status</p><p className="font-bold text-emerald-600">: {totalACC} Sudah ACC</p></div>
           </div>
 
-          <h3 className="font-black mb-3">📋 Rincian Kegiatan:</h3>
+          <h3 className="font-black mb-3">📋 Rincian Kegiatan (Urutan Terlama ke Terbaru):</h3>
           <table className="w-full border-collapse border border-gray-300 text-[11px]">
             <thead>
               <tr className="bg-teal-500 text-white">
                 <th className="border p-2 w-[30px]">No</th>
                 <th className="border p-2 w-[110px]">Tanggal</th>
                 <th className="border p-2">Kegiatan</th>
+                <th className="border p-2 w-[130px]">Dokumentasi</th>
                 <th className="border p-2 w-[90px]">Status</th>
-                <th className="border p-2 w-[120px]">Dokumentasi</th>
               </tr>
             </thead>
             <tbody>
               {laporanData.length===0? <tr><td colSpan={5} className="text-center p-4">Belum ada jurnal</td></tr> :
               laporanData.map((j,i)=>
                 <tr key={j.id} className={i%2===0?'bg-gray-50':''}>
-                  <td className="border p-2 text-center">{i+1}</td>
-                  <td className="border p-2">{j.tanggal}<br/><span className="text-[9px] text-gray-500">{j.jam}</span></td>
-                  <td className="border p-2">{j.kegiatan}</td>
-                  <td className="border p-2 text-[10px]">{j.status}</td>
-                  <td className="border p-2 text-center">{j.foto? <img src={j.foto} className="w-[110px] h-[70px] object-cover rounded-lg border mx-auto" /> : <span className="text-gray-400">-</span>}</td>
+                  <td className="border p-2 text-center align-top">{i+1}</td>
+                  <td className="border p-2 align-top">{j.tanggal}<br/><span className="text-[9px] text-gray-500">{j.jam}</span></td>
+                  <td className="border p-2 align-top font-medium">{j.kegiatan}</td>
+                  <td className="border p-2 text-center align-top">
+                    {j.foto? <img src={j.foto} className="w-[120px] h-[80px] object-cover rounded-lg border mx-auto" /> : <span className="text-gray-400 text-[10px]">Tidak ada</span>}
+                  </td>
+                  <td className="border p-2 text-center align-top text-[10px] font-bold text-emerald-600">{j.status}</td>
                 </tr>
               )}
             </tbody>
           </table>
-
-          {laporanData.some(j=>j.foto) && (
-            <div className="mt-6">
-              <h3 className="font-black mb-3">📸 Lampiran Dokumentasi Foto:</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {laporanData.filter(j=>j.foto).map((j,i)=>(
-                  <div key={'foto-'+j.id} className="border rounded-xl p-2">
-                    <img src={j.foto} className="w-full h-[140px] object-cover rounded-lg" />
-                    <p className="text-[10px] mt-1 font-bold">{i+1}. {j.tanggal}</p>
-                    <p className="text-[9px] text-gray-500 line-clamp-2">{j.kegiatan}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="mt-8 grid grid-cols-2 gap-10 text-center text-xs">
             <div><p className="mb-16">Mengetahui,<br/>Pembimbing DUDI</p><p className="font-bold underline">{getTempatInfo(laporanSiswa?.tempat||curr?.tempat)?.pj || '........................'}</p></div>
