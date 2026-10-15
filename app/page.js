@@ -29,7 +29,10 @@ export default function Page(){
     if(lh)setLoginHistory(JSON.parse(lh));
   },[]);
 
-  useEffect(()=>{localStorage.setItem('j_v103',JSON.stringify(jurnals))},[jurnals]); useEffect(()=>{localStorage.setItem('siswa_v103',JSON.stringify(siswaList))},[siswaList]); useEffect(()=>{localStorage.setItem('tempat_v103',JSON.stringify(tempatList))},[tempatList]); useEffect(()=>{localStorage.setItem('login_hist_v103',JSON.stringify(loginHistory))},[loginHistory]);
+  useEffect(()=>{localStorage.setItem('j_v103',JSON.stringify(jurnals))},[jurnals]);
+  useEffect(()=>{localStorage.setItem('siswa_v103',JSON.stringify(siswaList))},[siswaList]);
+  useEffect(()=>{localStorage.setItem('tempat_v103',JSON.stringify(tempatList))},[tempatList]);
+  useEffect(()=>{localStorage.setItem('login_hist_v103',JSON.stringify(loginHistory))},[loginHistory]);
 
   const saveHistory=(n)=>{if(!n)return;let h=[...loginHistory];if(!h.includes(n))h=[n,...h].slice(0,10);setLoginHistory(h);};
 
@@ -88,7 +91,6 @@ export default function Page(){
   const accSemua=()=>{const p=filtered.filter(j=>j.status.includes('Menunggu'));if(p.length===0)return alert('Tidak ada!');if(!confirm(`ACC ${p.length} sekaligus?`))return;setJurnals(jurnals.map(j=>(j.tempat===curr?.tempat&&j.status.includes('Menunggu'))?{...j,status:'Sudah Dikonfirmasi ✅',konfirmasiOleh:curr.nama}:j));};
   const filtered=jurnals.filter(j=>{const ft=filterTempat==='Semua'||j.tempat===filterTempat;const fs=j.siswaNama.toLowerCase().includes(search.toLowerCase())||j.kegiatan.toLowerCase().includes(search.toLowerCase());const rf=role==='dudi'?j.tempat===curr?.tempat:role==='siswa'?j.siswaNama===curr?.nama:true;return ft&&fs&&rf;});
 
-  // LAPORAN AKHIR FIX
   const openLaporan=(s)=>{setLaporanSiswa(s);setShowLaporan(true);};
   const printLaporan=()=>window.print();
   const downloadWord=()=>{
@@ -99,7 +101,8 @@ export default function Page(){
     a.href=u;a.download=`Laporan-Akhir-${laporanSiswa?.nama||curr?.nama}.doc`;a.click();
   };
   const getTempatInfo=(n)=>tempatList.find(t=>t.nama===n);
-  const totalMenunggu=filtered.filter(j=>j.status.includes('Menunggu')).length; const totalACC=filtered.filter(j=>j.status.includes('Sudah')).length;
+  const totalMenunggu=filtered.filter(j=>j.status.includes('Menunggu')).length;
+  const totalACC=filtered.filter(j=>j.status.includes('Sudah')).length;
   const isLoginDisabled =!login.nama || (login.peran==='guru'?!login.guruPass :!login.password) || (login.peran==='dudi' &&!login.tempat);
   const laporanData = jurnals.filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama));
 
@@ -140,10 +143,10 @@ export default function Page(){
     </div>
   )}
 
-  {/* ====== MODAL LAPORAN AKHIR - INI YANG HILANG KEMARIN CAK ====== */}
+  {/* MODAL LAPORAN AKHIR V11.2 DENGAN FOTO */}
   {showLaporan && (
     <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[24px] shadow-2xl">
+      <div className="bg-white w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[24px] shadow-2xl">
         <div id="laporan-akhir" ref={laporanRef} className="p-8 bg-white text-black">
           <div className="text-center border-b-4 border-teal-500 pb-4 mb-6">
             <img src={LOGO} className="w-16 h-16 mx-auto mb-2"/>
@@ -162,13 +165,44 @@ export default function Page(){
           </div>
 
           <h3 className="font-black mb-3">📋 Rincian Kegiatan:</h3>
-          <table className="w-full border-collapse border-gray-300 text-xs">
-            <thead><tr className="bg-teal-500 text-white"><th className="border p-2">No</th><th className="border p-2">Tanggal</th><th className="border p-2">Kegiatan</th><th className="border p-2">Status</th></tr></thead>
+          <table className="w-full border-collapse border border-gray-300 text-[11px]">
+            <thead>
+              <tr className="bg-teal-500 text-white">
+                <th className="border p-2 w-[30px]">No</th>
+                <th className="border p-2 w-[110px]">Tanggal</th>
+                <th className="border p-2">Kegiatan</th>
+                <th className="border p-2 w-[90px]">Status</th>
+                <th className="border p-2 w-[120px]">Dokumentasi</th>
+              </tr>
+            </thead>
             <tbody>
-              {laporanData.length===0? <tr><td colSpan={4} className="text-center p-4">Belum ada jurnal</td></tr> :
-              laporanData.map((j,i)=><tr key={j.id} className={i%2===0?'bg-gray-50':''}><td className="border p-2 text-center">{i+1}</td><td className="border p-2">{j.tanggal}<br/><span className="text-[10px]">{j.jam}</span></td><td className="border p-2">{j.kegiatan}</td><td className="border p-2">{j.status}</td></tr>)}
+              {laporanData.length===0? <tr><td colSpan={5} className="text-center p-4">Belum ada jurnal</td></tr> :
+              laporanData.map((j,i)=>
+                <tr key={j.id} className={i%2===0?'bg-gray-50':''}>
+                  <td className="border p-2 text-center">{i+1}</td>
+                  <td className="border p-2">{j.tanggal}<br/><span className="text-[9px] text-gray-500">{j.jam}</span></td>
+                  <td className="border p-2">{j.kegiatan}</td>
+                  <td className="border p-2 text-[10px]">{j.status}</td>
+                  <td className="border p-2 text-center">{j.foto? <img src={j.foto} className="w-[110px] h-[70px] object-cover rounded-lg border mx-auto" /> : <span className="text-gray-400">-</span>}</td>
+                </tr>
+              )}
             </tbody>
           </table>
+
+          {laporanData.some(j=>j.foto) && (
+            <div className="mt-6">
+              <h3 className="font-black mb-3">📸 Lampiran Dokumentasi Foto:</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {laporanData.filter(j=>j.foto).map((j,i)=>(
+                  <div key={'foto-'+j.id} className="border rounded-xl p-2">
+                    <img src={j.foto} className="w-full h-[140px] object-cover rounded-lg" />
+                    <p className="text-[10px] mt-1 font-bold">{i+1}. {j.tanggal}</p>
+                    <p className="text-[9px] text-gray-500 line-clamp-2">{j.kegiatan}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-8 grid grid-cols-2 gap-10 text-center text-xs">
             <div><p className="mb-16">Mengetahui,<br/>Pembimbing DUDI</p><p className="font-bold underline">{getTempatInfo(laporanSiswa?.tempat||curr?.tempat)?.pj || '........................'}</p></div>
