@@ -89,7 +89,18 @@ export default function Page(){
   const simpanJurnal=()=>{if(!jurnalForm.kegiatan)return alert('Isi kegiatan!');const baru={id:Date.now(),siswaNama:curr.nama,kelas:curr.kelas,tempat:curr.tempat,tanggal:new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),jam:new Date().toLocaleTimeString('id-ID'),kegiatan:jurnalForm.kegiatan,foto:jurnalForm.foto,status:'Menunggu ACC DUDI',konfirmasiOleh:''};setJurnals([baru,...jurnals]);setJurnalForm({kegiatan:'',foto:null});alert('Terkirim! 🍍');};
   const acc=(id)=>setJurnals(jurnals.map(j=>j.id===id?{...j,status:'Sudah Dikonfirmasi ✅',konfirmasiOleh:curr.nama}:j));
   const accSemua=()=>{const p=filtered.filter(j=>j.status.includes('Menunggu'));if(p.length===0)return alert('Tidak ada!');if(!confirm(`ACC ${p.length} sekaligus?`))return;setJurnals(jurnals.map(j=>(j.tempat===curr?.tempat&&j.status.includes('Menunggu'))?{...j,status:'Sudah Dikonfirmasi ✅',konfirmasiOleh:curr.nama}:j));};
-  const filtered=jurnals.filter(j=>{const ft=filterTempat==='Semua'||j.tempat===filterTempat;const fs=j.siswaNama.toLowerCase().includes(search.toLowerCase())||j.kegiatan.toLowerCase().includes(search.toLowerCase());const rf=role==='dudi'?j.tempat===curr?.tempat:role==='siswa'?j.siswaNama===curr?.nama:true;return ft&&fs&&rf;});
+
+  // FIX CAK - GURU MONITORING V11.5 - CUMA INI YANG DIUBAH
+  const filtered=jurnals.filter(j=>{
+    const ft = filterTempat==='Semua' || filterTempat==='SEMUA' || j.tempat===filterTempat;
+    const kw = search.toLowerCase();
+    const fs =!search || j.siswaNama.toLowerCase().includes(kw) || j.kegiatan.toLowerCase().includes(kw) || j.tempat.toLowerCase().includes(kw);
+    let rf = true;
+    if(role==='dudi') rf = j.tempat===curr?.tempat;
+    if(role==='siswa') rf = j.siswaNama===curr?.nama;
+    if(role==='guru') rf = true; // guru bisa lihat semua
+    return ft && fs && rf;
+  });
 
   const openLaporan=(s)=>{setLaporanSiswa(s);setShowLaporan(true);};
   const printLaporan=()=>window.print();
@@ -105,10 +116,9 @@ export default function Page(){
   const totalACC=filtered.filter(j=>j.status.includes('Sudah')).length;
   const isLoginDisabled =!login.nama || (login.peran==='guru'?!login.guruPass :!login.password) || (login.peran==='dudi' &&!login.tempat);
 
-  // FIX V11.4: URUTAN DARI TERLAMA KE TERBARU (PERTAMA UPLOAD DI ATAS)
   const laporanData = jurnals
-   .filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama))
-   .sort((a,b)=> a.id - b.id);
+  .filter(j=>j.siswaNama === (laporanSiswa?.nama || curr?.nama))
+  .sort((a,b)=> a.id - b.id);
 
   return (<><style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');*{font-family:'Poppins',sans-serif}@keyframes float1{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(6deg)}100%{transform:translateY(0) rotate(0deg)}}@keyframes float2{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-32px) rotate(-6deg)}100%{transform:translateY(0) rotate(0deg)}}.bokeh{position:fixed;pointer-events:none;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);z-index:0}@media print{body *{visibility:hidden;}#laporan-akhir,#laporan-akhir *{visibility:visible;}#laporan-akhir{position:absolute;left:0;top:0;width:100%;background:white;}.no-print{display:none!important;}}`}</style>
   {!role && <><div style={{background:'#14b8a6'}} className="fixed inset-0 z-0"></div><div className="bokeh" style={{width:'600px',height:'600px',top:'-120px',right:'-150px'}}></div><div className="bokeh" style={{width:'800px',height:'800px',bottom:'-250px',left:'-250px',opacity:0.5}}></div><div style={{position:'fixed',top:'4%',left:'2%',fontSize:'56px',animation:'float1 5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'12%',right:'4%',fontSize:'42px',animation:'float2 6s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',top:'50%',left:'1%',fontSize:'50px',animation:'float1 6.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'8%',right:'5%',fontSize:'54px',animation:'float2 5.5s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div><div style={{position:'fixed',bottom:'4%',left:'7%',fontSize:'46px',animation:'float1 7s infinite',zIndex:1,pointerEvents:'none'}}>🍍</div></>}
@@ -140,8 +150,22 @@ export default function Page(){
         )}
         {(role!=='guru'||guruTab==='monitoring') && (<>
           {role==='siswa' && (<div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] p-6 mb-5 text-white shadow-xl relative overflow-hidden"><div className="absolute right-0 top-0 text-[120px] opacity-10">🍍</div><h3 className="font-black text-lg">Halo, {curr?.nama}! 👋</h3><p className="text-sm opacity-80 mb-4">📍 {curr?.tempat}</p><div className="bg-white/10 backdrop-blur rounded-2xl p-4"><label className="text-xs font-bold opacity-80">✍️ TULIS KEGIATAN</label><textarea value={jurnalForm.kegiatan} onChange={e=>setJurnalForm({...jurnalForm,kegiatan:e.target.value})} placeholder="Hari ini belajar..." className="w-full bg-white rounded-xl p-3 mt-2 text-sm text-black outline-none min-h-[80px]"/><input type="file" accept="image/*" onChange={handleFoto} className="mt-3 text-xs"/><button onClick={simpanJurnal} className="w-full mt-3 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 font-black py-3.5 rounded-xl">🚀 Kirim</button>{jurnalForm.foto && <img src={jurnalForm.foto} className="mt-3 rounded-xl w-full max-w-xs"/>}</div><button onClick={()=>openLaporan(curr)} className="w-full mt-4 bg-white text-slate-900 font-black py-3 rounded-xl text-sm hover:bg-gray-100">📄 Laporan Akhir</button></div>)}
-          <div className="bg-white rounded-[20px] p-3 flex gap-2 mb-4 shadow-sm border"><select value={filterTempat} onChange={e=>setFilterTempat(e.target.value)} className="flex-1 bg-gray-50 rounded-xl p-3 text-sm font-bold"><option value="Semua">🌍 Semua</option>{tempatList.map(t=><option key={t.id} value={t.nama}>{t.nama}</option>)}</select><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Cari" className="flex-1 bg-gray-50 rounded-xl p-3 text-sm"/>{role==='dudi' && totalMenunggu>0 && <button onClick={accSemua} className="bg-emerald-500 text-white text-xs font-black px-5 py-3 rounded-xl">✅ ACC {totalMenunggu}</button>}</div>
-          <div className="grid gap-4">{filtered.map(j=><div key={j.id} className="bg-white rounded-[24px] p-5 shadow-sm border"><div className="flex justify-between items-start mb-3"><div className="flex gap-3"><div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-emerald-400 rounded-full flex items-center justify-center text-white font-black text-sm">{j.siswaNama.charAt(0)}</div><div><p className="font-black text-sm">{j.siswaNama}</p><p className="text-[11px] text-gray-500">📍 {j.tempat} • {j.tanggal}</p></div></div><span className={`text-[10px] font-black px-3 py-1.5 rounded-full ${j.status.includes('Sudah')?'bg-emerald-50 text-emerald-600 border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'}`}>{j.status}</span></div><p className="text-sm bg-gray-50 rounded-2xl p-4 border">{j.kegiatan}</p>{j.foto && <img src={j.foto} className="mt-4 rounded-2xl w-full max-h-[400px] object-cover border"/>}{role==='dudi' && j.status.includes('Menunggu') && <button onClick={()=>acc(j.id)} className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3.5 rounded-2xl font-black">✅ ACC</button>}</div>)}</div>
+          <div className="bg-white rounded-[20px] p-3 flex gap-2 mb-4 shadow-sm border"><select value={filterTempat} onChange={e=>setFilterTempat(e.target.value)} className="flex-1 bg-gray-50 rounded-xl p-3 text-sm font-bold"><option value="Semua">🌍 Semua Tempat</option>{tempatList.map(t=><option key={t.id} value={t.nama}>{t.nama}</option>)}</select><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Cari nama siswa / kegiatan" className="flex-1 bg-gray-50 rounded-xl p-3 text-sm"/>{role==='dudi' && totalMenunggu>0 && <button onClick={accSemua} className="bg-emerald-500 text-white text-xs font-black px-5 py-3 rounded-xl">✅ ACC {totalMenunggu}</button>}</div>
+          {/* FIX CAK - GURU MONITORING - GRID JURNAL */}
+          <div className="grid gap-4">
+            {filtered.length===0?(
+              <div className="bg-white rounded-[24px] p-10 text-center border-2 border-dashed border-teal-100">
+                <p className="text-3xl">🍍</p>
+                <p className="font-black mt-2 text-sm">Belum ada jurnal untuk filter ini</p>
+                <p className="text-[11px] text-gray-400 mt-1">Coba pilih Semua Tempat atau kosongkan pencarian. Guru bisa lihat jurnal + laporan akhir siswa disini.</p>
+              </div>
+            ):filtered.map(j=><div key={j.id} className="bg-white rounded-[24px] p-5 shadow-sm border"><div className="flex justify-between items-start mb-3"><div className="flex gap-3"><div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-emerald-400 rounded-full flex items-center justify-center text-white font-black text-sm">{j.siswaNama.charAt(0)}</div><div><p className="font-black text-sm">{j.siswaNama}</p><p className="text-[11px] text-gray-500">📍 {j.tempat} • {j.tanggal}</p></div></div><span className={`text-[10px] font-black px-3 py-1.5 rounded-full ${j.status.includes('Sudah')?'bg-emerald-50 text-emerald-600 border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'}`}>{j.status}</span></div><p className="text-sm bg-gray-50 rounded-2xl p-4 border">{j.kegiatan}</p>{j.foto && <img src={j.foto} className="mt-4 rounded-2xl w-full max-h-[400px] object-cover border"/>}
+            <div className="flex gap-2 mt-4">
+              {role==='dudi' && j.status.includes('Menunggu') && <button onClick={()=>acc(j.id)} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3.5 rounded-2xl font-black">✅ ACC</button>}
+              {role==='guru' && <button onClick={()=>openLaporan({nama:j.siswaNama, kelas:j.kelas, tempat:j.tempat, guru:siswaList.find(s=>s.nama===j.siswaNama)?.guru||curr?.nama})} className="flex-1 bg-slate-900 text-white py-3.5 rounded-2xl font-black text-xs">📄 Lihat Laporan Akhir {j.siswaNama}</button>}
+            </div>
+            </div>)}
+          </div>
         </>)}
       </div>
     </div>
